@@ -59,6 +59,23 @@ function sampleHistory() {                         // one real datapoint every 5
 setInterval(writeLive, 2000)
 setInterval(sampleHistory, 5000)
 
+// public endpoint (CORS): serves the live JSON + the latest live-view frame (cam.jpg),
+// so the hosted site can show a light, always-loading cam + data from anywhere
+const CAM_JPG = 'C:\\Users\\Administrator\\Desktop\\W2\\site_mirror\\cam.jpg'
+try {
+  require('http').createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Cache-Control', 'no-store')
+    if (req.url.indexOf('cam') >= 0) {
+      res.setHeader('Content-Type', 'image/jpeg')
+      try { res.end(fs.readFileSync(CAM_JPG)) } catch (e) { res.statusCode = 503; res.end('') }
+    } else {
+      res.setHeader('Content-Type', 'application/json')
+      try { res.end(fs.readFileSync(SITE_LIVE)) } catch (e) { res.statusCode = 503; res.end('{}') }
+    }
+  }).listen(8890, () => console.log('data+cam server on 8890 (CORS)'))
+} catch (e) { console.log('data server:', e.message) }
+
 function cfill(x1, y1, z1, x2, y2, z2, b) { var v = (Math.abs(x2 - x1) + 1) * (Math.abs(y2 - y1) + 1) * (Math.abs(z2 - z1) + 1); totalBlocks += v; placeLog.push({ t: Date.now(), n: v }); if (placeLog.length > 5000) placeLog.shift(); rawfill(x1, y1, z1, x2, y2, z2, b) }
 function cset(x, y, z, b) { totalBlocks++; placeLog.push({ t: Date.now(), n: 1 }); cmd(`/setblock ${x} ${y} ${z} minecraft:${b}`) }
 

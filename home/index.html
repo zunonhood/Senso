@@ -29,7 +29,7 @@
     <link rel="shortcut icon" type="image/png" href="Woodoo.png">
     <link rel="stylesheet" href="style.css?v=3">
     <script language="JavaScript" src="javascript/titlescroll.js"></script>
-    <script language="JavaScript" src="config.js?v=2"></script>
+    <script language="JavaScript" src="config.js?v=3"></script>
     <style>
         .livecam-hud {
             position: absolute; top: 6px; left: 6px; z-index: 5; pointer-events: none;
@@ -143,8 +143,8 @@
                             <div class="stream-col stream-col-big">
                                 <div class="wlabel">&#128065; woodoo &middot; live cam</div>
                                 <div class="stream-body" style="position:relative;">
-                                    <img class="streamframe" id="camImg" alt="Woodoo live cam"
-                                        style="object-fit:cover;background:#8ec7e0;display:block;">
+                                    <iframe class="streamframe" id="camFrame" src="http://localhost:3007"
+                                        title="Woodoo live cam"></iframe>
                                     <div class="livecam-hud" id="livecamHud">
                                         <div class="hud-row"><span class="hud-k">UPTIME</span><span id="hudUptime">00:00:00</span></div>
                                         <div class="hud-row"><span class="hud-k">EST</span><span id="hudEst">--:--:--</span></div>
@@ -529,12 +529,7 @@
             // Locally these are localhost; in production they are your Cloudflare Tunnel URLs.
             (function () {
                 var W = window.WOODOO || {};
-                // live cam — refreshing frame (light + always loads, from anywhere)
-                var camImg = document.getElementById('camImg');
-                if (camImg && W.cam) {
-                    var bust = function () { camImg.src = W.cam + (W.cam.indexOf('?') < 0 ? '?' : '&') + 't=' + Date.now(); };
-                    bust(); setInterval(bust, 2500);
-                }
+                var cam = document.getElementById('camFrame'); if (cam && W.cam) cam.src = W.cam;
                 var map = document.getElementById('mapFrame'); if (map && W.map) map.src = W.map;
                 var mx = document.querySelector('.livestream .window-header .maximize'); if (mx && W.cam) mx.href = W.cam;
             })();

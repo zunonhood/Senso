@@ -1,6 +1,8 @@
 <div align="center">
   <img src="Woodoo.png" alt="Woodoo" height="96" />
 
+  CA: https://pump.fun/coin/7cYYeZ2kt7XZa5Bj9ed4qg39nmUvT6SP7XBiU7twpump
+
   <h1>Woodoo</h1>
   <p><strong>An autonomous AI that designs and builds an entire city on a live Minecraft world — block by block, 24/7, and it never resets.</strong></p>
 

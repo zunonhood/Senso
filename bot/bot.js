@@ -1,0 +1,404 @@
+// Woodoo — an autonomous AI building a coherent New York City on a clean green island
+// surrounded by a wide ocean. A real LLM designs each building (as a spec); the code builds
+// it SOLID with /fill, lays streets, shapes parks. It keeps a persistent, server-side data
+// history (so all site visitors see the SAME real chart, and a refresh never restarts it),
+// and it triggers a local map render after each building so the web map stays current.
+const mineflayer = require('mineflayer')
+const { Vec3 } = require('vec3')
+const { pathfinder, Movements } = require('mineflayer-pathfinder')
+const OpenAI = require('openai')
+const fs = require('fs')
+const path = require('path')
+let mineflayerViewer = null
+try { mineflayerViewer = require('prismarine-viewer').mineflayer } catch (e) { console.log('viewer unavailable:', e.message) }
+
+const HOST = '127.0.0.1', PORT = 25565, NAME = 'Woodoo', VIEWER_PORT = 3007
+const GY = 72                 // flat city ground level
+const PLOT = 13, CELL = 18    // building plot + street pitch
+const MAXRING = 30           // never idles: keeps expanding outward (61x61 plots) reclaiming land as it goes
+const ISLAND = 100            // green land half-extent
+const OCEAN = 150             // cleared + water half-extent (everything within is clean; no mountains, no floaters)
+const SKY = 150               // clear terrain up to this Y (removes mountains + floating blocks)
+
+const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'ai.config.json'), 'utf8'))
+const ai = new OpenAI({ apiKey: cfg.apiKey, baseURL: cfg.baseURL })
+console.log('AI brain:', cfg.model, '@', cfg.baseURL)
+
+const PROGRESS = path.join(__dirname, 'nyc-progress.json')
+const STATE = path.join(__dirname, 'state.json')
+let done = {}; try { done = JSON.parse(fs.readFileSync(PROGRESS, 'utf8')) } catch (e) { done = {} }
+const saveProgress = () => { try { fs.writeFileSync(PROGRESS, JSON.stringify(done)) } catch (e) {} }
+
+const bot = mineflayer.createBot({ host: HOST, port: PORT, username: NAME, auth: 'offline' })
+const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+const cmd = (c) => bot.chat(c)
+const rawfill = (x1, y1, z1, x2, y2, z2, b) => cmd(`/fill ${x1} ${y1} ${z1} ${x2} ${y2} ${z2} minecraft:${b}`)
+const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(v || 0)))
+
+// ---- persistent, server-side live data (charts + info stream) ----
+const SITE_LIVE = 'C:\\Users\\Administrator\\Desktop\\W2\\site_mirror\\woodoo-live.json'
+let totalBlocks = 0, placeLog = [], events = [], history = [], startedAt = Date.now()
+try { const st = JSON.parse(fs.readFileSync(STATE, 'utf8')); totalBlocks = st.totalBlocks || 0; history = st.history || []; if (st.startedAt) startedAt = st.startedAt } catch (e) {}
+const easternClock = () => new Date().toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false })
+function pushEvent(tag, msg) { events.push({ t: easternClock(), tag, msg: String(msg).slice(0, 120) }); if (events.length > 60) events.shift() }
+function bpm() { const now = Date.now(); placeLog = placeLog.filter(e => e.t > now - 60000); const cut = now - 20000; return Math.round(placeLog.filter(e => e.t > cut).reduce((s, e) => s + e.n, 0) * 3) }
+function buildingsCount() { return Object.keys(done).filter(k => k[0] !== '_' && done[k] !== '~water~').length }
+function writeLive() {
+  try {
+    fs.writeFileSync(SITE_LIVE, JSON.stringify({
+      ts: Date.now(), startedAt, totalBlocks, blocksPerMin: bpm(), buildings: buildingsCount(),
+      history: history.slice(-180), events: events.slice(-40)
+    }))
+  } catch (e) {}
+}
+function sampleHistory() {                         // one real datapoint every 5s, kept server-side (persistent)
+  history.push({ t: Date.now(), rate: bpm(), total: totalBlocks, buildings: buildingsCount() })
+  if (history.length > 200) history = history.slice(-200)
+  try { fs.writeFileSync(STATE, JSON.stringify({ startedAt, totalBlocks, history })) } catch (e) {}
+}
+setInterval(writeLive, 2000)
+setInterval(sampleHistory, 5000)
+
+function cfill(x1, y1, z1, x2, y2, z2, b) { var v = (Math.abs(x2 - x1) + 1) * (Math.abs(y2 - y1) + 1) * (Math.abs(z2 - z1) + 1); totalBlocks += v; placeLog.push({ t: Date.now(), n: v }); if (placeLog.length > 5000) placeLog.shift(); rawfill(x1, y1, z1, x2, y2, z2, b) }
+function cset(x, y, z, b) { totalBlocks++; placeLog.push({ t: Date.now(), n: 1 }); cmd(`/setblock ${x} ${y} ${z} minecraft:${b}`) }
+
+let recentChat = []
+const BANNED = new Set(['bedrock', 'command_block', 'chain_command_block', 'repeating_command_block', 'barrier', 'structure_block', 'structure_void', 'tnt', 'air', 'cave_air', 'void_air', 'jigsaw', 'light'])
+const REMAP = { sand: 'sandstone', red_sand: 'red_sandstone', gravel: 'stone', anvil: 'iron_block', lava: 'magma_block' }
+function cleanBlock(b) { if (!b) return null; let n = String(b).toLowerCase().replace(/^minecraft:/, '').replace(/[^a-z0-9_]/g, ''); if (!n) return null; if (REMAP[n]) n = REMAP[n]; if (BANNED.has(n)) return 'stone'; return n }
+const cleanSay = (s) => String(s || '').replace(/[\r\n]+/g, ' ').replace(/^\/+/, '').trim().slice(0, 120)
+
+let cur = { x: 0, y: 0, z: 0 }
+async function moveTo(tx, ty, tz) {
+  try { bot.creative.startFlying() } catch (e) {}
+  const sx = cur.x, sz = cur.z, steps = Math.max(1, Math.round(Math.hypot(tx - sx, tz - sz) / 1.6))
+  const yaw = (Math.atan2(-(tx - sx), (tz - sz)) * 180 / Math.PI).toFixed(1)
+  for (let i = 1; i <= steps; i++) { cmd(`/tp ${NAME} ${(sx + (tx - sx) * i / steps).toFixed(2)} ${ty} ${(sz + (tz - sz) * i / steps).toFixed(2)} ${yaw} 15`); await sleep(100) }
+  cur = { x: tx, y: ty, z: tz }
+}
+
+// tiled fill helper (respects the 32768-block /fill limit)
+async function fillRegion(x1, y1, z1, x2, y2, z2, blk, tile) {
+  const T = tile || 20
+  for (let xa = x1; xa <= x2; xa += T) { const xb = Math.min(xa + T - 1, x2)
+    for (let za = z1; za <= z2; za += T) { const zb = Math.min(za + T - 1, z2); rawfill(xa, y1, za, xb, y2, zb, blk); await sleep(70) } }
+}
+
+// ---- build a clean canvas: green island + wide ocean, all terrain above ground cleared (no mountains, no floating blocks) ----
+async function prepareCanvas() {
+  pushEvent('SYS', 'clearing terrain — a clean green island in the sea'); bot.chat('shaping a clean island: clearing land to the sky, laying a green plain and the sea...')
+  await fillRegion(-OCEAN, GY + 1, -OCEAN, OCEAN, SKY, OCEAN, 'air', 20)        // wipe all mountains + floating blocks
+  for (let y = GY - 1; y >= GY - 6; y--) {                                       // solid base
+    rawfill(-OCEAN, y, -OCEAN, 0, y, OCEAN, 'stone'); rawfill(0, y, -OCEAN, OCEAN, y, OCEAN, 'stone'); await sleep(70)
+  }
+  rawfill(-ISLAND, GY, -ISLAND, 0, GY, ISLAND, 'grass_block'); rawfill(0, GY, -ISLAND, ISLAND, GY, ISLAND, 'grass_block'); await sleep(120)  // green land
+  rawfill(-OCEAN, GY, ISLAND + 1, OCEAN, GY, OCEAN, 'water'); rawfill(-OCEAN, GY, -OCEAN, OCEAN, GY, -ISLAND - 1, 'water')                    // ocean N/S
+  rawfill(ISLAND + 1, GY, -ISLAND, OCEAN, GY, ISLAND, 'water'); rawfill(-OCEAN, GY, -ISLAND, -ISLAND - 1, GY, ISLAND, 'water'); await sleep(120)  // ocean E/W
+  // seawall promenade around the island
+  rawfill(-ISLAND, GY, -ISLAND, ISLAND, GY, -ISLAND, 'stone_bricks'); rawfill(-ISLAND, GY, ISLAND, ISLAND, GY, ISLAND, 'stone_bricks')
+  rawfill(-ISLAND, GY, -ISLAND, -ISLAND, GY, ISLAND, 'stone_bricks'); rawfill(ISLAND, GY, -ISLAND, ISLAND, GY, ISLAND, 'stone_bricks'); await sleep(120)
+  pushEvent('SYS', 'land ready — a clean green island'); bot.chat('the island is clean and green. building New York now.')
+}
+
+const LANDMARKS = {
+  '0,-4': { name: 'One World Trade Center', hmax: 60, brief: 'One World Trade Center: a very tall tapering glass spire, light_blue/cyan/white stained glass with iron trim, a long antenna spire on top.' },
+  '2,2': { name: 'Empire State Building', hmax: 58, brief: 'Empire State Building: Art-Deco limestone (smooth_stone/quartz) with several stepped setbacks and a slender spire + light beacon.' },
+  '1,-2': { name: 'Chrysler Building', hmax: 54, brief: 'Chrysler Building: Art-Deco tower, light_blue_terracotta/iron stepped crown and a spire.' },
+  '-3,1': { name: 'Flatiron Building', hmax: 28, brief: 'Flatiron Building: narrow limestone (quartz/smooth_stone) tower, flat roof.' },
+}
+// building briefs by character
+const BR = {
+  sky: 'a Manhattan glass-and-steel skyscraper: concrete/quartz body, glass window bands (gray/black/light_blue_stained_glass), a couple of setbacks near the top, watertank or spire roof.',
+  office: 'a downtown office tower: concrete/quartz/copper body, glass window bands, maybe one setback, flat or watertank roof.',
+  landmark: 'a striking landmark tower for the skyline: glass/quartz/copper, glass window bands, a setback or two and a distinctive spire or crown roof.',
+  mid: 'a mid-rise apartment/office: brick or stone body, regular windows, flat roof, maybe a rooftop watertank.',
+  brown: 'a row of brownstones: warm brick/terracotta body, small windows, flat cornice roof.',
+  shop: 'a small corner shop/bodega: brick body, a big storefront window band on the ground floor, small windows above, flat roof (keep it short).',
+  villa: 'a detached suburban villa/house: warm brick or wood-plank body, white/quartz trim, small windows, a PITCHED roof; keep it SMALL (w and d 6-8).',
+  school: 'a public school building: red-brick body, many regular windows in neat rows, a wide low form, a quartz/columned entrance, flat roof. Make it WIDE (w and d 10-12).',
+}
+// contiguous themed neighborhoods (each ~3x3 plots share a character), density falls off outward
+function ihash(a, b) { return (((a * 73856093) ^ (b * 19349663)) >>> 0) }
+function districtFor(gi, gj) {
+  const r = Math.max(Math.abs(gi), Math.abs(gj))
+  if (r <= 2) return 'core'
+  if (r <= 4) return 'downtown'
+  if (r <= 6) return 'midtown'
+  const su = Math.floor((gi + 300) / 3), sv = Math.floor((gj + 300) / 3)
+  const themes = ['residential', 'residential', 'residential', 'villas', 'campus', 'sports', 'hills', 'park', 'villas', 'hills', 'residential', 'campus']
+  return themes[ihash(su, sv) % themes.length]
+}
+function isDistrictCenter(gi, gj) { return ((gi + 300) % 3) === 1 && ((gj + 300) % 3) === 1 }
+function zoneFor(gi, gj) {
+  const key = `${gi},${gj}`
+  if (LANDMARKS[key]) return { type: 'build', ...LANDMARKS[key] }
+  if (gi >= -1 && gi <= 1 && gj >= 1 && gj <= 4) return { type: 'park', name: 'Central Park' }
+  const d = districtFor(gi, gj), h = ihash(gi, gj)
+  switch (d) {
+    case 'core': return { type: 'build', name: 'skyscraper', hmax: 48, brief: BR.sky }
+    case 'downtown': return (h % 5 === 0) ? { type: 'build', name: 'landmark tower', hmax: 44, brief: BR.landmark } : { type: 'build', name: 'office tower', hmax: 34, brief: BR.office }
+    case 'midtown':
+      if (h % 9 === 0) return { type: 'feature', name: 'plaza & monument' }
+      if (h % 9 === 1) return { type: 'park', name: 'city square' }
+      return { type: 'build', name: 'mid-rise', hmax: 24, brief: BR.mid }
+    case 'residential':
+      if (h % 10 === 0) return { type: 'park', name: 'neighborhood park' }
+      if (h % 10 === 1) return { type: 'build', name: 'corner shop', hmax: 10, brief: BR.shop }
+      if (h % 10 === 2) return { type: 'build', name: 'apartments', hmax: 18, brief: BR.mid }
+      return { type: 'build', name: 'brownstone row', hmax: 13, brief: BR.brown }
+    case 'villas':
+      if (h % 7 === 0) return { type: 'park', name: 'garden green' }
+      return { type: 'villa', name: 'villa', hmax: 9, brief: BR.villa }
+    case 'campus':
+      if (isDistrictCenter(gi, gj)) return { type: 'field', name: 'campus field' }
+      if (h % 6 === 0) return { type: 'park', name: 'quad lawn' }
+      return { type: 'build', name: 'school building', hmax: 16, brief: BR.school }
+    case 'sports':
+      if (isDistrictCenter(gi, gj)) return { type: 'stadium', name: 'sports arena' }
+      return { type: 'lot', name: 'parking & plaza' }
+    case 'hills':
+      if (h % 6 === 0) return { type: 'park', name: 'hill park' }
+      return { type: 'hillhouse', name: 'hillside house', hmax: 8, brief: BR.villa }
+    case 'park': return { type: 'park', name: 'city park' }
+  }
+  return { type: 'build', name: 'row houses', hmax: 12, brief: BR.brown }
+}
+
+// reclaim a single plot of land from the sea/wilderness: clear to the sky, lay a solid base + grass
+async function reclaimLand(cx, cz) {
+  // terrain prep (clearing + base) is NOT counted as "blocks placed" — only real construction counts,
+  // so the metrics reflect actual building instead of huge one-shot land-clearing spikes
+  rawfill(cx - 10, GY + 1, cz - 10, cx + 9, SKY, cz + 9, 'air')        // wipe water/terrain up to the sky
+  rawfill(cx - 10, GY - 6, cz - 10, cx + 9, GY - 1, cz + 9, 'stone')   // solid base
+  rawfill(cx - 10, GY, cz - 10, cx + 9, GY, cz + 9, 'grass_block')     // new land
+  await sleep(140)
+}
+
+const SYSTEM = `You are Woodoo, an autonomous AI architect building a detailed New York City block by block. For the given plot you design ONE building and return a SPEC (not individual blocks) — a renderer builds it SOLID from your spec, so pick proportions and materials that look great and match the district.
+Return ONLY a raw JSON object, no markdown/fences/commentary:
+{"say":"<one short in-character sentence>","name":"<short name>","w":<6-12>,"d":<6-12>,"height":<6..HMAX>,"body":"<block id>","trim":"<block id>","windows":"<block id>","setbacks":[[<height>,<inset 1-2>]],"roof":"flat|watertank|spire|crown|dome|pitched","roof_material":"<block id>"}
+Rules: block ids without minecraft: prefix; use real NYC materials (concrete/quartz/smooth_stone/bricks/deepslate/terracotta/copper body; stained_glass windows; iron/quartz/copper trim). height must be <= HMAX. setbacks optional (taller buildings look better with 1-2). No air/bedrock/tnt/water/lava/command blocks. JSON only.`
+
+async function askSpec(gi, gj, zone) {
+  const chat = recentChat.length ? recentChat.join(' | ') : '(none)'; recentChat = []
+  const nbrs = []; for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = `${gi + dx},${gj + dz}`; if (done[k] && done[k] !== '~water~') nbrs.push(done[k]) }
+  const user = `${SYSTEM.replace('HMAX', zone.hmax)}
+
+PLOT grid(${gi},${gj}). DISTRICT: ${zone.brief || zone.name}. Height limit HMAX = ${zone.hmax}.
+Neighbors already built: ${nbrs.length ? nbrs.join(', ') : '(open)'}. Visitor chat: ${chat}.
+Design it now. JSON only.`
+  const resp = await ai.chat.completions.create({ model: cfg.model, max_tokens: 1200, messages: [{ role: 'user', content: user }] })
+  let txt = (resp.choices?.[0]?.message?.content || '').trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim()
+  const a = txt.indexOf('{'), b = txt.lastIndexOf('}'); if (a >= 0 && b > a) txt = txt.slice(a, b + 1)
+  return JSON.parse(txt)
+}
+
+async function pave(cx, cz) {
+  cfill(cx - 9, GY, cz - 9, cx + 8, GY, cz + 8, 'gray_concrete'); await sleep(120)
+  cfill(cx - 6, GY, cz - 6, cx + 6, GY, cz + 6, 'light_gray_concrete'); await sleep(120)
+}
+
+async function renderTower(ox, oz, zone, spec, baseY) {
+  var B = baseY || GY
+  var w = clamp(spec.w, 6, 12), d = clamp(spec.d, 6, 12), H = clamp(spec.height, 6, zone.hmax || 12)
+  var body = cleanBlock(spec.body) || 'light_gray_concrete', trim = cleanBlock(spec.trim) || 'smooth_stone'
+  var win = cleanBlock(spec.windows) || 'gray_stained_glass', roofMat = cleanBlock(spec.roof_material) || trim
+  var x1 = ox + ((13 - w) >> 1), x2 = x1 + w - 1, z1 = oz + ((13 - d) >> 1), z2 = z1 + d - 1
+  var cuts = (Array.isArray(spec.setbacks) ? spec.setbacks : []).map(s => [clamp(s[0], 3, H - 1), clamp(s[1], 1, 2)]).filter(s => s[0] < H).sort((p, q) => p[0] - q[0])
+  var segs = [], yA = 0, a = x1, b = x2, c = z1, e = z2
+  for (var i = 0; i < cuts.length; i++) { segs.push({ yA: yA, yB: cuts[i][0] - 1, x1: a, x2: b, z1: c, z2: e }); yA = cuts[i][0]; a += cuts[i][1]; b -= cuts[i][1]; c += cuts[i][1]; e -= cuts[i][1]; if (b - a < 3 || e - c < 3) { a = x1 + 1; b = x2 - 1; c = z1 + 1; e = z2 - 1; break } }
+  segs.push({ yA: yA, yB: H, x1: a, x2: b, z1: c, z2: e })
+  for (var s of segs) {
+    cfill(s.x1, B + s.yA, s.z1, s.x1, B + s.yB, s.z2, body); cfill(s.x2, B + s.yA, s.z1, s.x2, B + s.yB, s.z2, body)
+    cfill(s.x1, B + s.yA, s.z1, s.x2, B + s.yB, s.z1, body); cfill(s.x1, B + s.yA, s.z2, s.x2, B + s.yB, s.z2, body); await sleep(140)
+    for (var yy = s.yA + 2; yy <= s.yB - 1; yy += 2) {
+      cfill(s.x1, B + yy, s.z1, s.x1, B + yy, s.z2, win); cfill(s.x2, B + yy, s.z1, s.x2, B + yy, s.z2, win)
+      cfill(s.x1, B + yy, s.z1, s.x2, B + yy, s.z1, win); cfill(s.x1, B + yy, s.z2, s.x2, B + yy, s.z2, win)
+    }
+    await sleep(140)
+    var C = [[s.x1, s.z1], [s.x1, s.z2], [s.x2, s.z1], [s.x2, s.z2]]
+    for (var k = 0; k < 4; k++) cfill(C[k][0], B + s.yA, C[k][1], C[k][0], B + s.yB, C[k][1], trim); await sleep(120)
+  }
+  cfill(x1, B, z1, x1, B + 2, z2, trim); cfill(x2, B, z1, x2, B + 2, z2, trim)
+  cfill(x1, B, z1, x2, B + 2, z1, trim); cfill(x1, B, z2, x2, B + 2, z2, trim)
+  var mid = (x1 + x2) >> 1; cfill(mid - 1, B, z1, mid + 1, B + 1, z1, 'air'); await sleep(120)
+  var t = segs[segs.length - 1], mx = (t.x1 + t.x2) >> 1, mz = (t.z1 + t.z2) >> 1
+  cfill(t.x1, B + H + 1, t.z1, t.x2, B + H + 1, t.z2, roofMat); await sleep(120)
+  var rf = String(spec.roof || 'flat')
+  if (/spire|antenna/.test(rf)) { cfill(mx, B + H + 2, mz, mx, B + H + 11, mz, trim); cset(mx, B + H + 12, mz, 'sea_lantern') }
+  else if (/tank/.test(rf)) { cfill(mx - 1, B + H + 2, mz - 1, mx + 1, B + H + 4, mz + 1, 'spruce_planks'); cset(mx, B + H + 5, mz, 'glowstone') }
+  else if (/crown|dome/.test(rf)) { cfill(t.x1 + 1, B + H + 2, t.z1 + 1, t.x2 - 1, B + H + 3, t.z2 - 1, roofMat); cset(mx, B + H + 4, mz, 'sea_lantern') }
+  else if (/pitch|gable|hip|slope/.test(rf)) { for (var ri = 0; ri <= Math.min(w, d) >> 1; ri++) { if (t.x1 + ri > t.x2 - ri) break; cfill(t.x1 + ri, B + H + 1 + ri, t.z1 + ri, t.x2 - ri, B + H + 1 + ri, t.z2 - ri, roofMat) } }
+  else { cset(t.x1, B + H + 2, t.z1, 'sea_lantern'); cset(t.x2, B + H + 2, t.z2, 'sea_lantern') }
+}
+
+async function renderPark(cx, cz) {
+  cfill(cx - 6, GY, cz - 6, cx + 6, GY, cz + 6, 'grass_block')
+  cfill(cx - 1, GY, cz - 6, cx + 1, GY, cz + 6, 'dirt_path'); cfill(cx - 6, GY, cz - 1, cx + 6, GY, cz + 1, 'dirt_path'); await sleep(120)
+  cfill(cx + 3, GY, cz + 3, cx + 5, GY, cz + 5, 'water')
+  var trees = [[-4, -4], [4, -4], [-4, 4], [-3, 3]]
+  for (var tI = 0; tI < trees.length; tI++) {
+    var tx = cx + trees[tI][0], tz = cz + trees[tI][1]
+    cfill(tx, GY + 1, tz, tx, GY + 4, tz, 'oak_log')
+    cfill(tx - 2, GY + 4, tz - 2, tx + 2, GY + 5, tz + 2, 'oak_leaves'); cfill(tx - 1, GY + 6, tz - 1, tx + 1, GY + 6, tz + 1, 'oak_leaves'); await sleep(100)
+  }
+  cset(cx, GY + 3, cz, 'sea_lantern')
+}
+
+// streetlights at the block corners + a couple of street trees — life on every block
+async function decorate(cx, cz) {
+  var posts = [[-8, -8], [8, -8], [-8, 8], [8, 8]]
+  for (var i = 0; i < posts.length; i++) {
+    var lx = cx + posts[i][0], lz = cz + posts[i][1]
+    cfill(lx, GY + 1, lz, lx, GY + 3, lz, 'cobblestone_wall'); cset(lx, GY + 4, lz, 'sea_lantern')
+  }
+  var trees = [[-8, 0], [8, 0], [0, -8], [0, 8]]
+  for (var t = 0; t < trees.length; t++) {
+    var tx = cx + trees[t][0], tz = cz + trees[t][1]
+    cfill(tx, GY + 1, tz, tx, GY + 3, tz, 'oak_log')
+    cfill(tx - 1, GY + 3, tz - 1, tx + 1, GY + 4, tz + 1, 'oak_leaves'); cset(tx, GY + 5, tz, 'oak_leaves')
+  }
+  await sleep(120)
+}
+
+// a civic feature: paved plaza + central monument + corner fountains + trees
+async function renderFeature(cx, cz) {
+  cfill(cx - 6, GY, cz - 6, cx + 6, GY, cz + 6, 'stone_bricks')
+  cfill(cx - 6, GY, cz - 6, cx + 6, GY, cz + 6, 'stone_bricks')
+  cfill(cx - 2, GY, cz - 2, cx + 2, GY, cz + 2, 'polished_andesite'); await sleep(100)
+  // central monument
+  cfill(cx - 1, GY, cz - 1, cx + 1, GY, cz + 1, 'chiseled_stone_bricks')
+  cfill(cx, GY + 1, cz, cx, GY + 9, cz, 'quartz_pillar')
+  cset(cx, GY + 10, cz, 'gold_block'); cset(cx, GY + 11, cz, 'sea_lantern'); await sleep(120)
+  // corner fountains
+  var f = [[-4, -4], [4, -4], [-4, 4], [4, 4]]
+  for (var i = 0; i < f.length; i++) {
+    var fx = cx + f[i][0], fz = cz + f[i][1]
+    cfill(fx - 1, GY, fz - 1, fx + 1, GY, fz + 1, 'stone_bricks'); cset(fx, GY, fz, 'water')
+    cfill(fx - 1, GY + 1, fz - 1, fx - 1, GY + 1, fz + 1, 'stone_brick_wall'); cset(fx, GY + 1, fz, 'sea_lantern')
+  }
+  await sleep(120)
+  // side trees
+  var tr = [[-5, 0], [5, 0], [0, -5], [0, 5]]
+  for (var t = 0; t < tr.length; t++) {
+    var tx = cx + tr[t][0], tz = cz + tr[t][1]
+    cfill(tx, GY + 1, tz, tx, GY + 3, tz, 'oak_log'); cfill(tx - 1, GY + 3, tz - 1, tx + 1, GY + 4, tz + 1, 'oak_leaves')
+  }
+  await sleep(120)
+}
+
+// a campus / practice sports field: grass pitch, white lines, small bleachers, floodlights
+async function renderField(cx, cz) {
+  cfill(cx - 8, GY, cz - 8, cx + 7, GY, cz + 7, 'grass_block')
+  cfill(cx - 6, GY, cz - 6, cx + 6, GY, cz - 6, 'white_concrete'); cfill(cx - 6, GY, cz + 6, cx + 6, GY, cz + 6, 'white_concrete')
+  cfill(cx - 6, GY, cz - 6, cx - 6, GY, cz + 6, 'white_concrete'); cfill(cx + 6, GY, cz - 6, cx + 6, GY, cz + 6, 'white_concrete')
+  cfill(cx - 6, GY, cz, cx + 6, GY, cz, 'white_concrete'); await sleep(100)
+  cfill(cx - 8, GY + 1, cz - 8, cx + 7, GY + 2, cz - 8, 'smooth_stone'); cfill(cx - 8, GY + 1, cz + 8, cx + 7, GY + 2, cz + 8, 'smooth_stone')
+  var f = [[-8, -8], [8, -8], [-8, 8], [8, 8]]
+  for (var i = 0; i < f.length; i++) { cfill(cx + f[i][0], GY + 1, cz + f[i][1], cx + f[i][0], GY + 6, cz + f[i][1], 'iron_bars'); cset(cx + f[i][0], GY + 7, cz + f[i][1], 'sea_lantern') }
+  await sleep(120)
+}
+
+// a sports arena: a bowl of stands with red seats around a grass pitch + floodlight pylons
+async function renderStadium(cx, cz) {
+  cfill(cx - 5, GY, cz - 5, cx + 4, GY, cz + 4, 'grass_block'); cfill(cx - 5, GY, cz, cx + 4, GY, cz, 'white_concrete'); await sleep(100)
+  var mat = 'light_gray_concrete'
+  cfill(cx - 7, GY, cz - 7, cx + 6, GY + 5, cz - 7, mat); cfill(cx - 7, GY, cz + 6, cx + 6, GY + 5, cz + 6, mat)
+  cfill(cx - 7, GY, cz - 7, cx - 7, GY + 5, cz + 6, mat); cfill(cx + 6, GY, cz - 7, cx + 6, GY + 5, cz + 6, mat); await sleep(120)
+  cfill(cx - 6, GY + 1, cz - 6, cx + 5, GY + 4, cz - 6, 'red_concrete'); cfill(cx - 6, GY + 1, cz + 5, cx + 5, GY + 4, cz + 5, 'red_concrete')
+  cfill(cx - 6, GY + 1, cz - 6, cx - 6, GY + 4, cz + 5, 'red_concrete'); cfill(cx + 5, GY + 1, cz - 6, cx + 5, GY + 4, cz + 5, 'red_concrete'); await sleep(120)
+  var f = [[-7, -7], [6, -7], [-7, 6], [6, 6]]
+  for (var i = 0; i < f.length; i++) { cfill(cx + f[i][0], GY + 6, cz + f[i][1], cx + f[i][0], GY + 9, cz + f[i][1], 'iron_block'); cset(cx + f[i][0], GY + 10, cz + f[i][1], 'sea_lantern') }
+  await sleep(120)
+}
+
+// a parking lot / plaza that supports a nearby facility
+async function renderLot(cx, cz) {
+  cfill(cx - 8, GY, cz - 8, cx + 7, GY, cz + 7, 'gray_concrete')
+  for (var zz = cz - 6; zz <= cz + 6; zz += 3) cfill(cx - 6, GY, zz, cx + 6, GY, zz, 'white_concrete')
+  await sleep(100)
+}
+
+// villa garden: lawn, path, low fence — a detached-house yard
+async function renderYard(cx, cz) {
+  cfill(cx - 7, GY, cz - 7, cx + 7, GY, cz + 7, 'grass_block')
+  cfill(cx - 1, GY, cz - 7, cx + 1, GY, cz + 7, 'dirt_path'); await sleep(100)
+  cfill(cx - 7, GY + 1, cz - 7, cx + 7, GY + 1, cz - 7, 'oak_fence'); cfill(cx - 7, GY + 1, cz + 7, cx + 7, GY + 1, cz + 7, 'oak_fence')
+  cfill(cx - 7, GY + 1, cz - 7, cx - 7, GY + 1, cz + 7, 'oak_fence'); cfill(cx + 7, GY + 1, cz - 7, cx + 7, GY + 1, cz + 7, 'oak_fence')
+  cset(cx, GY + 1, cz - 7, 'air'); await sleep(100)   // gate
+  var tr = [[-5, -5], [5, 5]]
+  for (var t = 0; t < tr.length; t++) { var tx = cx + tr[t][0], tz = cz + tr[t][1]; cfill(tx, GY + 1, tz, tx, GY + 3, tz, 'oak_log'); cfill(tx - 1, GY + 3, tz - 1, tx + 1, GY + 4, tz + 1, 'oak_leaves') }
+  await sleep(100)
+}
+
+// raise a green hill (truncated mound) with a flat top pad; returns the top ground level
+async function raiseHill(cx, cz) {
+  var M = 3 + (ihash(cx, cz) % 3)   // 3-5 tall
+  for (var y = 1; y <= M; y++) { var s = 9 - Math.floor(3 * y / M); cfill(cx - s, GY + y, cz - s, cx + s, GY + y, cz + s, 'dirt') }
+  cfill(cx - 6, GY + M, cz - 6, cx + 6, GY + M, cz + 6, 'grass_block')   // flat green pad on top
+  await sleep(150)
+  return GY + M
+}
+
+async function run() {
+  await sleep(3000); cmd(`/tp ${NAME} 0 ${GY + 40} 0`); await sleep(3500)
+  try { bot.creative.startFlying() } catch (e) {}
+  if (!done['_canvas']) { await prepareCanvas(); done['_canvas'] = 1; saveProgress() }
+  pushEvent('SYS', 'Woodoo online — building New York City'); bot.chat('Woodoo online. building New York City.')
+
+  const plots = []; for (let r = 0; r <= MAXRING; r++) for (let gj = -r; gj <= r; gj++) for (let gi = -r; gi <= r; gi++) if (Math.max(Math.abs(gi), Math.abs(gj)) === r) plots.push([gi, gj])
+  while (true) {
+    for (const [gi, gj] of plots) {
+      const key = `${gi},${gj}`; if (done[key]) continue
+      const zone = zoneFor(gi, gj)
+      const cx = gi * CELL, cz = gj * CELL, ox = cx - 6, oz = cz - 6
+      await moveTo(cx + 22, GY + 16, cz + 22); try { await bot.lookAt(new Vec3(cx, GY + 8, cz), true) } catch (e) {}
+      try {
+        if (Math.abs(cx) > ISLAND - 9 || Math.abs(cz) > ISLAND - 9) { pushEvent('WOODOO', 'reclaiming land from the sea to keep building'); await reclaimLand(cx, cz) }
+        const t = zone.type
+        if (t === 'park') { pushEvent('WOODOO', 'laying out a green ' + zone.name); await renderPark(cx, cz); done[key] = zone.name }
+        else if (t === 'feature') { pushEvent('WOODOO', 'building a public plaza with a monument and fountains'); await renderFeature(cx, cz); done[key] = 'Plaza & Monument' }
+        else if (t === 'field') { pushEvent('WOODOO', 'marking out a sports field'); await renderField(cx, cz); done[key] = 'Sports Field' }
+        else if (t === 'stadium') { pushEvent('WOODOO', 'raising a sports arena'); await renderStadium(cx, cz); done[key] = 'Sports Arena' }
+        else if (t === 'lot') { await pave(cx, cz); pushEvent('WOODOO', 'paving a parking plaza'); await renderLot(cx, cz); await decorate(cx, cz); done[key] = 'Parking & Plaza' }
+        else if (t === 'hillhouse') {
+          pushEvent('WOODOO', 'terracing a hillside for a home'); const baseY = await raiseHill(cx, cz)
+          pushEvent('PLAN', `designing ${zone.name} @ grid(${gi},${gj})`); const spec = await askSpec(gi, gj, zone)
+          pushEvent('WOODOO', cleanSay(spec.say) || `a house on the hill`); bot.chat(cleanSay(spec.say) || `a house on the hill`)
+          await renderTower(ox, oz, zone, spec, baseY); done[key] = String(spec.name || zone.name).slice(0, 40)
+        }
+        else if (t === 'villa') {
+          await renderYard(cx, cz)
+          pushEvent('PLAN', `designing ${zone.name} @ grid(${gi},${gj})`); const spec = await askSpec(gi, gj, zone)
+          pushEvent('WOODOO', cleanSay(spec.say) || `a villa with a garden`); bot.chat(cleanSay(spec.say) || `a villa with a garden`)
+          await renderTower(ox, oz, zone, spec); done[key] = String(spec.name || zone.name).slice(0, 40)
+        }
+        else {   // AI-designed building on a paved street block
+          await pave(cx, cz)
+          pushEvent('PLAN', `designing ${zone.name} @ grid(${gi},${gj})`)
+          const spec = await askSpec(gi, gj, zone)
+          pushEvent('WOODOO', cleanSay(spec.say) || `building ${zone.name}`); bot.chat(cleanSay(spec.say) || `building a ${zone.name}`)
+          await renderTower(ox, oz, zone, spec)
+          await decorate(cx, cz)                 // streetlights + street trees
+          done[key] = String(spec.name || zone.name).slice(0, 40)
+        }
+        saveProgress(); pushEvent('BUILD', `${done[key]} complete`)
+        cmd(`/dynmap radiusrender 30`)   // keep the web map current for this block
+        console.log(`[${buildingsCount()}] ${zone.type} "${done[key]}" @ grid(${gi},${gj})`)
+      } catch (e) { console.error(`plot(${gi},${gj})`, e.message); pushEvent('ERR', `retrying ${zone.name}`); await sleep(2500) }
+      await sleep(2200)   // let the map + viewer catch up between buildings
+    }
+    await sleep(60000)
+  }
+}
+
+bot.once('spawn', () => {
+  console.log('spawned as', NAME); bot.loadPlugin(pathfinder)
+  try { const md = require('minecraft-data')(bot.version); const m = new Movements(bot, md); m.canDig = false; bot.pathfinder.setMovements(m) } catch (e) {}
+  if (mineflayerViewer) { try { mineflayerViewer(bot, { port: VIEWER_PORT, firstPerson: false, viewDistance: 6 }); console.log('viewer on', VIEWER_PORT) } catch (e) { console.error('viewer', e.message) } }
+  run().catch(e => console.error('run err', e))
+})
+bot.on('chat', (u, m) => { if (u && u !== NAME) { recentChat.push(`${u}: ${m}`); if (recentChat.length > 8) recentChat.shift(); pushEvent('CHAT', `${u}: ${m}`) } })
+bot.on('kicked', (r) => console.log('KICKED:', r))
+bot.on('error', (e) => console.log('ERROR:', e.message))
+bot.on('end', (r) => console.log('END:', r))

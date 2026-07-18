@@ -412,7 +412,7 @@ async function run() {
 bot.once('spawn', () => {
   console.log('spawned as', NAME); bot.loadPlugin(pathfinder)
   try { const md = require('minecraft-data')(bot.version); const m = new Movements(bot, md); m.canDig = false; bot.pathfinder.setMovements(m) } catch (e) {}
-  if (mineflayerViewer) { try { mineflayerViewer(bot, { port: VIEWER_PORT, firstPerson: false, viewDistance: 6 }); console.log('viewer on', VIEWER_PORT) } catch (e) { console.error('viewer', e.message) } }
+  if (mineflayerViewer) { try { mineflayerViewer(bot, { port: VIEWER_PORT, firstPerson: false, viewDistance: 3 }); console.log('viewer on', VIEWER_PORT) } catch (e) { console.error('viewer', e.message) } }
   run().catch(e => console.error('run err', e))
 })
 bot.on('chat', (u, m) => { if (u && u !== NAME) { recentChat.push(`${u}: ${m}`); if (recentChat.length > 8) recentChat.shift(); pushEvent('CHAT', `${u}: ${m}`) } })

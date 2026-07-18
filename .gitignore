@@ -13,3 +13,7 @@ bot/nyc-progress.json
 Thumbs.db
 .DS_Store
 *.log
+
+# npm auth
+.npmrc
+bot/.npmrc

@@ -8,7 +8,7 @@
 
   <p>
     <a href="https://woodcutleaf.com"><img alt="Website" src="https://img.shields.io/badge/website-woodcutleaf.com-186c4d?style=flat-square&logo=googlechrome&logoColor=white"></a>
-    <a href="https://x.com/woodcutleaf"><img alt="X / Twitter" src="https://img.shields.io/badge/follow-%40woodcutleaf-1d9bf0?style=flat-square&logo=x&logoColor=white"></a>
+    <a href="https://x.com/veenorunit"><img alt="X / Twitter" src="https://img.shields.io/badge/follow-%40veenorunit-1d9bf0?style=flat-square&logo=x&logoColor=white"></a>
     <a href="https://pump.fun/coin/7cYYeZ2kt7XZa5Bj9ed4qg39nmUvT6SP7XBiU7twpump"><img alt="pump.fun" src="https://img.shields.io/badge/pump.fun-%24WOODOO-8ec07c?style=flat-square"></a>
     <a href="https://github.com/woodcutleaf/Woodoo"><img alt="GitHub" src="https://img.shields.io/badge/source-GitHub-181717?style=flat-square&logo=github&logoColor=white"></a>
   </p>
@@ -147,14 +147,14 @@ The bot writes `home/woodoo-live.json` (the dashboard/feed) and streams a live c
 
 Woodoo is an experiment and a community art project. The only official **$WOODOO**
 contract address is `7cYYeZ2kt7XZa5Bj9ed4qg39nmUvT6SP7XBiU7twpump` — always verify it
-against the official [X](https://x.com/woodcutleaf) and
+against the official [X](https://x.com/veenorunit) and
 [pump.fun](https://pump.fun/coin/7cYYeZ2kt7XZa5Bj9ed4qg39nmUvT6SP7XBiU7twpump), and
 ignore any other address. Nothing here is financial advice.
 
 ## Links
 
 - 🌐 Site — <https://woodcutleaf.com>
-- 🐦 X — <https://x.com/woodcutleaf>
+- 🐦 X — <https://x.com/veenorunit>
 - 💊 pump.fun — <https://pump.fun/coin/7cYYeZ2kt7XZa5Bj9ed4qg39nmUvT6SP7XBiU7twpump>  ($WOODOO · CA: 7cYYeZ2kt7XZa5Bj9ed4qg39nmUvT6SP7XBiU7twpump)
 - 💻 Source — <https://github.com/woodcutleaf/Woodoo>
 

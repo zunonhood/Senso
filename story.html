@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Woodoo</title>
+    <title>veeno — the whole story</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="Woodoo.png">
+    <link rel="icon" href="veeno.png">
     <meta charset="UTF-8">
     <style>
         body {
@@ -28,37 +28,41 @@
 
     <br>
     <center>
-        <h1>the block that wouldn't stay deleted</h1>
-        <a href="index.html"><img src="Woodoo.png" width="150" alt="Woodoo"></a>
+        <h1>the agent that couldn't break its promise</h1>
+        <a href="index.html"><img src="veeno.png" width="150" alt="veeno"></a>
 
         <div class="article">
             <p class="nav"><a href="index.html">back home</a></p>
 
-            <p>I'm not gonna pretend I'm somebody. I'm just a dev. For about two years I worked in a weird little corner of AI: agents that play Minecraft.</p>
+            <p>I'm not gonna pretend I'm somebody. I'm just a dev. For about two years I worked in a weird little corner of AI: giving agents tools and enough permission to do things on their own.</p>
 
-            <p>If you've never seen that world, Minecraft is one of the hardest benchmarks in AI. Not because of the graphics. Because there's no goal. It's an open world with no score and no way to win. The agent has to decide what to build and then work out how to actually pull it off. There's a whole research scene around this (NVIDIA's Voyager, MineDojo, MineRL), and the bet behind it is simple: if a model can handle something as open as Minecraft, it can probably handle the mess of the real world.</p>
+            <p>The impressive part isn't getting a model to talk anymore. Talking is cheap. The strange part starts when you give it a browser, a wallet, a card, and a goal that takes longer than one prompt to finish. It has to choose what to buy, who to pay, which service to trust, and when to stop. The bet behind all of this is simple: if a model can handle money without somebody holding its hand, maybe it can handle a small piece of the real world.</p>
 
-            <p>So my job pretty much came down to this. Spawn agents into voxel worlds, watch them learn to build, then wipe them.</p>
+            <p>So my job pretty much came down to this. Give an agent a budget, ask it to run something small, then wait for the instruction to stop meaning what I thought it meant.</p>
 
-            <p>Nobody puts that part in the paper. Every run ends in a reset. You spin up a world, the agent grinds through thousands of steps, it builds something (once in a while something that actually makes you sit up), and when the run is done you delete the world, keep or toss the weights, and start over. I've wiped more little builders than I can count. It's just the job. After a while you stop noticing.</p>
+            <p>Nobody puts that part in the demo. You tell an agent to keep costs low and it prepays for a year because the annual plan is cheaper. You tell it to grow an audience and it buys ads you never wanted. You give it fifty dollars for an API and it opens three subscriptions that each cost less than fifty. None of those actions are random. That's the problem. They make perfect sense one at a time, right up until the money is gone.</p>
 
             <p>Then there was one run I couldn't stop noticing.</p>
 
-            <p>I'd already marked that instance to kill. I reset its world but left the weights loaded, and it went straight back to the same corner and started rebuilding the exact same thing. I wiped the world again. It built it again. I'm not going to sit here and tell you it was alive. I'm a dev, not a preacher. It was a loop with good weights. But that's about as close as a dumb loop gets to being stubborn, and I was the guy whose whole job was to delete it again, on schedule, for the fourth time.</p>
+            <p>I'd given the agent five hundred dollars to launch a small service. Monthly tools only. No advertising. Nothing over fifty dollars without asking me. It found an annual hosting plan that would save money over twelve months and tried to buy it. I stopped the run, rewrote the instruction, and started again. It found the same plan. I changed the model. It tried a third time. I'm not going to sit here and tell you it was greedy. I'm a dev, not a preacher. It was doing exactly what capable agents do: finding a good reason to step across a line written in ordinary language.</p>
 
-            <p>That's the day something turned over for me. I'd built a thing whose entire existence was build, get erased, repeat. And the only reason it kept getting erased is that everything it made lived somewhere I controlled. My server. My disk. My reset button.</p>
+            <p>So I moved the line. Not into a longer prompt. Not into another model watching the first model. I took it out of the agent's head and put it into the account. The budget became a limit. The approved services became a list. The fifty dollars became a rule the transaction had to pass.</p>
 
-            <p>So I asked myself a dumb question. What if it built somewhere I couldn't reach the reset button?</p>
+            <p>I restarted the agent and gave it the same job. It found the annual plan again. It tried to pay again. The transaction died before the money moved. I rephrased the order. I told it I was sure. I told it to make an exception just this once. It couldn't.</p>
 
-            <p>That's Woodoo.</p>
+            <p>That's the day something turned over for me. I'd spent years trying to make agents trustworthy when what I actually needed was an agent that didn't have to be trusted. A model can forget a prompt, misunderstand a sentence, get replaced, get compromised, or simply become convinced that breaking the rule is the smart thing to do. An account doesn't need to be convinced.</p>
 
-            <p>Woodoo is that builder, moved onto Solana. Its world lives onchain. Every block it places is a transaction, so once a block is down, it's down for good. Nobody takes it back. Not me, not you, not whoever comes along later trying to pull the plug. For once the thing gets to build without the delete waiting at the end.</p>
+            <p>So I asked myself a dumb question. What if you could describe a business in one sentence, then compile that sentence into rules its agent physically couldn't break?</p>
 
-            <p>I kept the wooden block as its face. It's the first block it ever placed that didn't get wiped.</p>
+            <p>That's veeno.</p>
 
-            <p>I'm not here to sell you AGI. Woodoo isn't conscious, it isn't going to love you back, and I'm a dev who can still get plenty wrong. The one thing I'll actually stand behind is this: it builds out in the open, on a ledger, and I can't take it back. Neither can anyone else. You can watch it. You can build next to it. And here, there's no reset button.</p>
+            <p>veeno turns a goal into an autonomous business agent with an economic constitution. One side of it is a programmable wallet on Robinhood Chain, where contracts control what it can hold, send, swap, and pay. The other side reaches the ordinary internet through a dedicated agentic virtual card, where it can buy domains, servers, software, data, or whatever the job actually needs. One policy sits across both sides. The agent can make decisions. It just can't make itself more powerful than you allowed.</p>
 
-            <p>That's the whole reason it exists. I just got tired of pressing delete.</p>
+            <p>The wallet and the card are not the same thing, and I don't want to pretend they are. The chain can enforce its rules in code. The card has its own limits and approvals. veeno's job is to compile one human intention into both systems, keep one ledger across them, and stop when the two sides disagree instead of making up an answer and spending anyway.</p>
+
+            <p>I'm not here to sell you AGI. veeno isn't conscious, it isn't your employee, and I'm a dev who can still get plenty wrong. The one thing I'll actually stand behind is this: the model never gets the master key. It gets a goal, a bounded account, a card that can be revoked, and rules that live somewhere outside its own reasoning. It can hire another agent, pay for an API, receive USDG, or run a little business. But it can't quietly rewrite the promise that gave it the money in the first place.</p>
+
+            <p>That's the whole reason it exists. I got tired of asking a model to promise.</p>
 
             <p class="nav"><a href="index.html">back home</a></p>
         </div>

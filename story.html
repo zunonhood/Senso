@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Settra &mdash; the whole story</title>
+    <title>Senso &mdash; the whole story</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="Settra.png">
+    <link rel="icon" href="Senso.png">
     <meta charset="UTF-8">
     <style>
         body {
             font-size: 15px;
             color: #ffffff;
-            background-color: #000000;
+            background-color: #1875B9;
         }
         h1 { color: #ffffff; }
         a { color: #ffffff; }
@@ -20,7 +20,7 @@
             line-height: 1.85;
         }
         .article p { margin: 0 0 1.15em 0; }
-        .sign { color: #a0522d; font-size: 13px; margin-top: 2em; }
+        .sign { display: inline-block; color: transparent; background: linear-gradient(90deg, #ff4d6d, #ff8c42, #ffd93d, #2ee6a6, #4dd7ff, #7b61ff, #d946ef); background-clip: text; -webkit-background-clip: text; font-size: 13px; margin-top: 2em; }
         .nav { font-size: 13px; margin-bottom: 1.5em; }
     </style>
 </head>
@@ -29,14 +29,14 @@
     <br>
     <center>
         <h1>the agent that couldn't break its promise</h1>
-        <a href="index.html"><img src="Settra.png" width="150" alt="Settra"></a>
+        <a href="index.html"><img src="Senso.png" width="150" alt="Senso"></a>
 
         <div class="article">
             <p class="nav"><a href="index.html">back home</a></p>
 
             <p>I'm not gonna pretend I'm somebody. I'm just a dev. For about two years I worked in a weird little corner of AI: giving agents tools and enough permission to do things on their own.</p>
 
-            <p>The impressive part isn't getting a model to talk anymore. Talking is cheap. The strange part starts when you give it a browser, a wallet, a card, and a goal that takes longer than one prompt to finish. It has to choose what to buy, who to pay, which service to trust, and when to stop. The bet behind all of this is simple: if a model can handle money without somebody holding its hand, maybe it can handle a small piece of the real world.</p>
+            <p>The impressive part isn't getting a model to talk anymore. Talking is cheap. The strange part starts when you give it a browser, an Arc wallet funded with USDC, and a goal that takes longer than one prompt to finish. It has to choose what to buy, who to pay, which contract to trust, and when to stop. The bet behind all of this is simple: if a model can handle money without somebody holding its hand, maybe it can handle a small piece of the real world.</p>
 
             <p>So my job pretty much came down to this. Give an agent a budget, ask it to run something small, then wait for the instruction to stop meaning what I thought it meant.</p>
 
@@ -54,13 +54,13 @@
 
             <p>So I asked myself a dumb question. What if you could describe a business in one sentence, then compile that sentence into rules its agent physically couldn't break?</p>
 
-            <p>That's Settra.</p>
+            <p>That's Senso.</p>
 
-            <p>Settra turns a goal into an autonomous business agent with an economic constitution. One side of it is a programmable wallet on Robinhood Chain, where contracts control what it can hold, send, swap, and pay. The other side reaches the ordinary internet through a dedicated agentic virtual card, where it can buy domains, servers, software, data, or whatever the job actually needs. One policy sits across both sides. The agent can make decisions. It just can't make itself more powerful than you allowed.</p>
+            <p>Senso turns a goal into an autonomous business agent with an economic constitution deployed on Arc. Its programmable account controls what USDC it can hold, send, swap, and pay, while Arc uses USDC for native gas. Circle Wallets, CCTP and Gateway extend that same policy across custody and cross-chain movement. The agent can make decisions. It just can't make itself more powerful than you allowed.</p>
 
-            <p>The wallet and the card are not the same thing, and I don't want to pretend they are. The chain can enforce its rules in code. The card has its own limits and approvals. Settra's job is to compile one human intention into both systems, keep one ledger across them, and stop when the two sides disagree instead of making up an answer and spending anyway.</p>
+            <p>Arc execution and Circle platform services are not the same trust boundary, and I don't want to pretend they are. Arc can enforce policy in code; Circle services handle wallet operations and USDC routes. Senso compiles one human intention into both layers, keeps one USDC ledger across them, and stops whenever a route cannot prove that it satisfies the signed policy.</p>
 
-            <p>I'm not here to sell you AGI. Settra isn't conscious, it isn't your employee, and I'm a dev who can still get plenty wrong. The one thing I'll actually stand behind is this: the model never gets the master key. It gets a goal, a bounded account, a card that can be revoked, and rules that live somewhere outside its own reasoning. It can hire another agent, pay for an API, receive USDG, or run a little business. But it can't quietly rewrite the promise that gave it the money in the first place.</p>
+            <p>I'm not here to sell you AGI. Senso isn't conscious, it isn't your employee, and I'm a dev who can still get plenty wrong. The one thing I'll actually stand behind is this: the model never gets the master key. It gets a goal, a bounded Arc account, scoped wallet authority, and rules that live somewhere outside its own reasoning. It can hire another agent, pay for an API, receive USDC, or run a little business. But it can't quietly rewrite the promise that gave it the money in the first place.</p>
 
             <p>That's the whole reason it exists. I got tired of asking a model to promise.</p>
 

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Settra</title>
+    <title>Senso</title>
     <link rel="stylesheet" href="style.css">
-<link rel="icon" href="Settra.png">
+<link rel="icon" href="Senso.png">
 
   <meta charset="UTF-8">
 
@@ -15,7 +15,7 @@
     body {
     font-size: 14px;
     color: #ffffff;
-    background-color: #000000;
+    background-color: #1875B9;
     padding-top: 12px;
     margin: 0;
     min-height: 100vh;
@@ -32,29 +32,27 @@
       font-family:'MS Sans Serif',Tahoma,Verdana,sans-serif;
       font-size:15px; font-weight:bold; letter-spacing:1px;
       color:#ffffff; text-decoration:none;
-      background:#5a3a24;
+      background:#171c18;
       padding:8px 30px;
       border-top:2px solid #ffffff; border-left:2px solid #ffffff;
       border-right:2px solid #808080; border-bottom:2px solid #808080;
       box-shadow:2px 2px 0 #000;
     }
-    .enterbtn.is-disabled, .pons-link.is-disabled { opacity:.6; cursor:not-allowed; pointer-events:none; }\n    .enterbtn:active {
+    .enterbtn.is-disabled { cursor:not-allowed; pointer-events:none; }\n    .enterbtn:active {
       border-top:2px solid #808080; border-left:2px solid #808080;
       border-right:2px solid #ffffff; border-bottom:2px solid #ffffff;
       box-shadow:none; transform:translate(2px,2px);
     }
     .ca-addr { font-family: Consolas, monospace; font-size: 0.8em; font-weight: bold; cursor: pointer; word-break: break-all; }
-    .pons-link { display: inline-block; height: 28px; text-decoration: none; vertical-align: top; }
-    .pons-badge {
-      height: 28px; min-width: 82px; padding: 0 11px 0 8px;
-      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    .argus-link { display: inline-block; height: 28px; text-decoration: none; vertical-align: top; }
+    .argus-badge {
+      height: 28px; min-width: 82px; padding: 0 11px;
+      display: inline-flex; align-items: center; justify-content: center;
       box-sizing: border-box; vertical-align: top;
       color: #fff; background: #171c18;
       font: bold 11px/28px Verdana,Geneva,"DejaVu Sans",sans-serif;
       letter-spacing: .2px; text-decoration: none;
-    }
-    .pons-badge img { width: 16px; height: 16px; object-fit: contain; image-rendering: auto; }
-    body.repo-open { overflow: hidden; }
+    }    body.repo-open { overflow: hidden; }
     .repo-modal[hidden] { display: none; }
     .repo-modal {
       position: fixed; inset: 0; z-index: 9999;
@@ -151,7 +149,7 @@
     }
     </style>
     <p>I'm not gonna pretend I'm somebody. I'm just a dev. For about two years I worked in a weird corner of AI: <br>giving agents tools and enough permission to do things on their own.<br>
-You give one a goal, a browser, a wallet or a card, and then wait for the instruction to stop meaning what you thought it meant.</p>
+You give one a goal, a browser, and an Arc wallet funded with USDC, then wait for the instruction to stop meaning what you thought it meant.</p>
 
     <p>I've watched more agents spend themselves into a corner than I can count. It's just the job, and you stop noticing.<br>
 Then one refused to make a purchase. I restarted it, changed the model, reworded the order. The transaction kept dying.</p>
@@ -159,38 +157,34 @@ Then one refused to make a purchase. I restarted it, changed the model, reworded
     <p>It wasn't being careful. The rule no longer lived inside the model. It lived inside the account.<br>
 So I asked myself a dumb question. What if an agent didn't have to be trusted in order to use money?</p>
 
-    <p><b class="rainbowline">⁂That's Settra. An autonomous business agent with a wallet, a card, and a constitution it cannot break. One side reaches Robinhood Chain. The other reaches the ordinary internet. The rules survive both.</b></p>
+    <p><b class="rainbowline">⁂That's Senso. An autonomous business agent with an Arc wallet and a constitution it cannot break. It settles in USDC, pays gas in USDC, and keeps every action inside policy enforced on Arc.</b></p>
 
     <p><a href="story.html"><b>&#8250;&#8250; read the whole story</b></a></p>
 
-    <p>CA: <span class="ca-addr">0x831e7b11b4ffef790699c11a4e59c2a87fd6fe57</span></p>
+    <p>CA: <span class="ca-addr">coming soon</span></p>
 
-    <BR><a href="home/index.html"><img src="Settra.png" width="220" alt="Settra"></a>
+    <BR><a href="home/index.html"><img src="Senso.png" width="220" alt="Senso"></a>
     <BR>
-    <p><a href="#" class="enterbtn is-disabled" aria-disabled="true" tabindex="-1" aria-label="SETTRA token link coming soon"><span class="rainbow">B</span><span class="rainbow">U</span><span class="rainbow">Y</span>&nbsp;<span class="rainbow">$</span><span class="rainbow">S</span><span class="rainbow">E</span><span class="rainbow">T</span><span class="rainbow">T</span><span class="rainbow">R</span><span class="rainbow">A</span></a></p>
+    <p><a href="https://argus.world/" class="enterbtn" target="_blank" rel="noopener" aria-label="Open SENSO on Argus">BUY $SENSO</a></p>
 <h5>an agent should be able to act without being able to take everything.</h5>
 <h5>give it a goal. give it money. keep the rules outside its head.</h5>
 
-
-
-     <p style="line-height:1.3;">
-       <a href="https://x.com/settrausecard" target="_blank" rel="noopener"><img src="badges/badge_twitter.svg" alt="SETTRA on X" height="28"></a>
+     <p class="social-badges" style="line-height:1.3;">
+       <a href="https://x.com/sensoonarc" target="_blank" rel="noopener"><img src="badges/badge_twitter.svg" alt="SENSO on X" height="28"></a>
        &nbsp;
-       <a href="#Settra-repository" id="github-repo-button" aria-haspopup="dialog"><img src="badges/badge_github.svg" alt="open Settra repository" height="28"></a>
+       <a href="#Senso-repository" id="github-repo-button" aria-haspopup="dialog"><img src="badges/badge_github.svg" alt="open Senso repository" height="28"></a>
        &nbsp;
-       <a class="pons-link is-disabled" href="#" aria-disabled="true" tabindex="-1" aria-label="Pons token link coming soon"><span class="pons-badge"><img src="badges/pons.png" alt=""><span>PONS</span></span></a>
+       <a class="argus-link" href="https://argus.world/" target="_blank" rel="noopener" aria-label="Visit Argus"><span class="argus-badge">ARGUS</span></a>
      </p>
-     <br>
-     <img src="badges/sideadd.gif" alt="sideadd"><img src="badges/decayedg1rl.gif" alt="decayedg1rl"><a href="https://pixelmoondust.neocities.org/"><img src="badges/lonelyjulybutton.gif" alt="lonely july"></a><a href="https://pixelmoondust.neocities.org/"><img src="badges/everfreebutton.gif" alt="everfree"></a><a href="https://urist.neocities.org/"><img src="badges/youtuube.gif" alt="youtube"></a><a href="https://urist.neocities.org/"><img src="badges/necrodancer.gif" alt="necrodancer"></a><img src="badges/8bit.gif" alt="8bit"><img src="badges/117.gif" alt="117"><img src="badges/angelgirl134123.gif" alt="angelgirl"><img src="badges/bikobatanari.gif" alt="bikobatanari"><img src="badges/getcubed.png" alt="getcubed"><img src="badges/isnotanoctopus.gif" alt="isnotanoctopus"><br><img src="badges/pnfrlenm.gif" alt="pnfrlenm"><img src="badges/jamesland_3.gif" alt="jamesland"><img src="badges/lovedentist.gif" alt="lovedentist"><img src="badges/noerror.gif" alt="noerror"><img src="badges/cyanonearth.gif" alt="cyanonearth"><img src="badges/top_6.gif" alt="top6"><img src="badges/imhigh.gif" alt="imhigh">
 
     </center>
-    <div style="text-align:center; font-weight:normal; margin-top:auto; padding:6px 0 8px;">Copyright ©2026 Settra</div>
+    <div style="text-align:center; font-weight:normal; margin-top:auto; padding:6px 0 8px;">Copyright ©2026 Senso</div>
 
-  <div class="repo-modal" id="Settra-repository" role="dialog" aria-modal="true" aria-labelledby="repo-title" hidden>
+  <div class="repo-modal" id="Senso-repository" role="dialog" aria-modal="true" aria-labelledby="repo-title" hidden>
     <section class="repo-window">
       <header class="repo-topbar">
         <span class="repo-mark" aria-hidden="true">V</span>
-        <div class="repo-path"><strong>TBA</strong> / <strong id="repo-title">Settra</strong></div>
+        <div class="repo-path"><strong>TBA</strong> / <strong id="repo-title">Senso</strong></div>
         <span class="repo-visibility">Public</span>
         <button class="repo-close" type="button" aria-label="Close repository preview">×</button>
       </header>
@@ -205,28 +199,28 @@ So I asked myself a dumb question. What if an agent didn't have to be trusted in
         <button class="repo-tab" type="button" data-repo-panel="policy">examples/mandate.yaml</button>
         <button class="repo-tab" type="button" data-repo-panel="compiler">src/compiler/compileMandate.ts</button>
         <button class="repo-tab" type="button" data-repo-panel="runtime">src/runtime/executePlan.ts</button>
-        <button class="repo-tab" type="button" data-repo-panel="contract">contracts/SettraPolicy.sol</button>
+        <button class="repo-tab" type="button" data-repo-panel="contract">contracts/SensoPolicy.sol</button>
       </nav>
       <main class="repo-content">
         <article class="repo-panel" data-panel-name="readme">
           <div class="readme-box">
             <div class="readme-head">README.md</div>
             <div class="readme-body">
-              <h1>Settra</h1>
-              <p><strong>the autonomous business agent with a wallet, a card, and a constitution.</strong></p>
+              <h1>Senso</h1>
+              <p><strong>the autonomous business agent with an Arc wallet and an onchain constitution.</strong></p>
               <p>
-                <span class="repo-badge">Robinhood Chain</span>
-                <span class="repo-badge blue">ERC-4337</span>
+                <span class="repo-badge">Arc</span>
+                <span class="repo-badge blue">USDC Gas</span>
                 <span class="repo-badge gray">MCP</span>
                 <span class="repo-badge gray">TypeScript</span>
                 <span class="repo-badge gray">Solidity</span>
               </p>
               <blockquote><p>Give an agent a goal. Give it money. Keep the rules outside its head.</p></blockquote>
-              <p>Settra is an open protocol for creating bounded economic agents. It compiles a human mandate into a typed policy, attacks that policy for loopholes, deploys an ERC-4337 account on Robinhood Chain, and maps the same limits to a dedicated agentic virtual card.</p>
+              <p>Senso is an open protocol for creating bounded economic agents on Arc, Circle's open EVM-compatible layer 1. It compiles a human mandate into a typed policy, attacks that policy for loopholes, and deploys an Arc policy account that uses USDC for both native gas and settlement.</p>
 
               <h2>the idea</h2>
               <p>Today's agents are given prompts and credentials. Prompts are soft; credentials are absolute. A model can misunderstand a sentence, split one forbidden payment into five permitted payments, or decide that breaking a rule is useful to the larger goal.</p>
-              <p>Settra separates <strong>reasoning</strong> from <strong>authority</strong>. A model may propose any action. Only the policy account can authorize it.</p>
+              <p>Senso separates <strong>reasoning</strong> from <strong>authority</strong>. A model may propose any action. Only the policy account can authorize it.</p>
               <div class="repo-callout"><strong>Example mandate</strong><br><code>run my site for $500/month. no annual plans. never advertise. ask before any payment over $50.</code></div>
 
               <h2>how it works</h2>
@@ -238,65 +232,65 @@ intent compiler ──► typed policy ──► breaker agent
                               counterexample search
                                          │
                                          ▼
-user signs policy root ──► ERC-4337 policy account
+user signs policy root ──► Arc policy account
                                   │              │
                                   ▼              ▼
-                         Robinhood Chain    banking adapter
-                         USDG / contracts   virtual card / MCP</code></pre>
+                         Arc network        Circle platform
+                         USDC / contracts   Wallets / CCTP / Gateway</code></pre>
 
               <h2>architecture</h2>
               <table>
                 <thead><tr><th>Package</th><th>Responsibility</th><th>Trust</th></tr></thead>
                 <tbody>
-                  <tr><td><code>@Settra/compiler</code></td><td>Natural language → canonical policy DSL</td><td>Untrusted proposal</td></tr>
-                  <tr><td><code>@Settra/breaker</code></td><td>Conflict detection and multi-step bypass search</td><td>Adversarial</td></tr>
-                  <tr><td><code>@Settra/account</code></td><td>ERC-4337 validation and execution limits</td><td>Onchain enforcement</td></tr>
-                  <tr><td><code>@Settra/banking</code></td><td>Virtual-card policies, approval flow and reconciliation</td><td>Provider boundary</td></tr>
-                  <tr><td><code>@Settra/ledger</code></td><td>Cross-rail double-entry ledger and Merkle commitments</td><td>Auditable</td></tr>
-                  <tr><td><code>@Settra/runtime</code></td><td>Planning, simulation, execution and compensation</td><td>Replaceable</td></tr>
+                  <tr><td><code>@Senso/compiler</code></td><td>Natural language → canonical policy DSL</td><td>Untrusted proposal</td></tr>
+                  <tr><td><code>@Senso/breaker</code></td><td>Conflict detection and multi-step bypass search</td><td>Adversarial</td></tr>
+                  <tr><td><code>@Senso/account</code></td><td>Arc policy validation, USDC limits and execution</td><td>Onchain enforcement</td></tr>
+                  <tr><td><code>@Senso/arc</code></td><td>Circle Wallets, CCTP and Gateway integration</td><td>Circle boundary</td></tr>
+                  <tr><td><code>@Senso/ledger</code></td><td>Arc receipts, USDC accounting and policy commitments</td><td>Auditable</td></tr>
+                  <tr><td><code>@Senso/runtime</code></td><td>Planning, simulation, execution and compensation</td><td>Replaceable</td></tr>
                 </tbody>
               </table>
 
               <h2>repository</h2>
-              <pre><code>Settra/
+              <pre><code>Senso/
 ├── apps/
 │   ├── web/                 policy builder + activity ledger
 │   └── agent/               planner and MCP runtime
 ├── contracts/
-│   ├── SettraAccount.sol     ERC-4337 smart account
-│   ├── SettraPolicy.sol      deterministic authorization
+│   ├── SensoAccount.sol     Arc policy account
+│   ├── SensoPolicy.sol      deterministic authorization
 │   └── PolicyRegistry.sol   versioned policy roots
 ├── src/
 │   ├── compiler/            mandate parser + canonicalizer
 │   ├── breaker/             counterexample search
 │   ├── runtime/             plan / simulate / execute / compensate
-│   ├── banking/             Robinhood Banking MCP adapter
-│   └── ledger/              card + chain reconciliation
+│   ├── arc/                 Circle Wallets / CCTP / Gateway
+│   └── ledger/              USDC accounting + Arc receipts
 ├── examples/mandate.yaml
-└── test/invariants/         Foundry invariant tests</code></pre>
+└── test/invariants/         Arc Foundry invariant tests</code></pre>
 
               <h2>policy lifecycle</h2>
               <ol>
                 <li><strong>Draft.</strong> The compiler produces a typed policy and explains every inferred value.</li>
                 <li><strong>Attack.</strong> The breaker searches for split-spend, asset-hop, stale-price and approval bypasses.</li>
                 <li><strong>Confirm.</strong> The user reviews the canonical policy—not the original prompt—and signs its hash.</li>
-                <li><strong>Deploy.</strong> A policy account and bounded session key are created on Robinhood Chain.</li>
+                <li><strong>Deploy.</strong> A policy account and bounded session key are created on Arc.</li>
                 <li><strong>Execute.</strong> Every action is simulated and checked against pre-state and expected post-state.</li>
-                <li><strong>Reconcile.</strong> Card and chain entries settle into one ledger; private records remain offchain while their Merkle root is committed onchain.</li>
+                <li><strong>Reconcile.</strong> USDC transfers, fees and contract calls settle into one ledger; policy commitments and execution receipts remain verifiable on Arc.</li>
               </ol>
 
               <h2>quick start</h2>
-              <pre><code>git clone https://github.com/TBA/Settra
-cd Settra
+              <pre><code>git clone https://github.com/TBA/Senso
+cd Senso
 pnpm install
 cp .env.example .env
 
 # compile and attack an example mandate
-pnpm Settra compile examples/mandate.yaml
+pnpm Senso compile examples/mandate.yaml
 
-# run contracts against Robinhood Chain testnet
-pnpm contracts:test
-pnpm contracts:deploy:testnet
+# test with Arc execution semantics and deploy through an Arc RPC
+FOUNDRY_PROFILE=arc arc-forge test
+FOUNDRY_PROFILE=arc arc-forge script script/Deploy.s.sol --rpc-url $ARC_RPC_URL --broadcast
 
 # start the local agent and policy console
 pnpm dev</code></pre>
@@ -308,8 +302,8 @@ pnpm dev</code></pre>
                 <li>Limits apply to aggregate spend, preventing transaction splitting.</li>
                 <li>Unknown contracts and assets fail closed.</li>
                 <li>High-risk operations require an owner signature.</li>
-                <li>Card details are requested only at checkout and are never written to the public ledger.</li>
-                <li>Cross-rail operations use a Saga state machine because card payments and chain transactions cannot be atomic.</li>
+                <li>USDC is used for native gas and settlement, keeping fees denominated in dollars.</li>
+                <li>Circle Wallets, CCTP and Gateway routes are checked against the same signed policy before execution.</li>
               </ul>
 
               <h2>status</h2>
@@ -317,14 +311,14 @@ pnpm dev</code></pre>
                 <tbody>
                   <tr><td>Mandate DSL</td><td>prototype</td></tr>
                   <tr><td>Breaker agent</td><td>prototype</td></tr>
-                  <tr><td>Policy account</td><td>testnet</td></tr>
-                  <tr><td>Banking MCP adapter</td><td>integration</td></tr>
+                  <tr><td>Arc policy account</td><td>deployed</td></tr>
+                  <tr><td>Circle platform integration</td><td>integration</td></tr>
                   <tr><td>Security audit</td><td>not started</td></tr>
                 </tbody>
               </table>
 
               <h2>disclaimer</h2>
-              <p>Experimental software. Not audited. Do not use with funds you cannot afford to lose. Robinhood Chain and Robinhood Banking are separate execution environments; Settra does not claim that card transactions settle onchain.</p>
+              <p>Experimental software. Not audited. Do not use with funds you cannot afford to lose. Arc execution and Circle platform services have distinct trust boundaries; Senso verifies policy before every USDC movement and records the resulting Arc transaction receipt.</p>
 
               <h2>rule zero</h2>
               <p><strong>The model never gets the master key.</strong></p>
@@ -334,7 +328,7 @@ pnpm dev</code></pre>
 
         <article class="repo-panel" data-panel-name="policy" hidden>
           <div class="code-wrap">
-            <div class="code-head">Settra / examples / mandate.yaml</div>
+            <div class="code-head">Senso / examples / mandate.yaml</div>
             <pre><code><span class="cm"># Generated from:</span>
 <span class="cm"># "run my site for $500/month. no annual plans.</span>
 <span class="cm">#  never advertise. ask before spending more than $50."</span>
@@ -351,15 +345,17 @@ budget:
   period_anchor: calendar_month
   split_window: 72h
 
-card:
+payments:
+  asset: USDC
   allowed_categories: [hosting, domains, software, data]
   blocked_categories: [advertising, gambling, cash_advance]
   subscription_periods: [monthly]
   require_receipt: true
 
-onchain:
-  chain_id: <span class="fn">46630</span>
-  settlement_asset: USDG
+arc:
+  chain_id: <span class="str">${ARC_CHAIN_ID}</span>
+  settlement_asset: USDC
+  native_gas_asset: USDC
   borrowing: false
   unknown_contracts: deny
   max_slippage_bps: <span class="fn">50</span>
@@ -378,10 +374,10 @@ failure:
 
         <article class="repo-panel" data-panel-name="compiler" hidden>
           <div class="code-wrap">
-            <div class="code-head">Settra / src / compiler / compileMandate.ts</div>
+            <div class="code-head">Senso / src / compiler / compileMandate.ts</div>
             <pre><code><span class="kw">import</span> { keccak256, toBytes } <span class="kw">from</span> <span class="str">"viem"</span>;
-<span class="kw">import</span> { PolicySchema, type Policy } <span class="kw">from</span> <span class="str">"@Settra/policy"</span>;
-<span class="kw">import</span> { builder, breaker } <span class="kw">from</span> <span class="str">"@Settra/agents"</span>;
+<span class="kw">import</span> { PolicySchema, type Policy } <span class="kw">from</span> <span class="str">"@Senso/policy"</span>;
+<span class="kw">import</span> { builder, breaker } <span class="kw">from</span> <span class="str">"@Senso/agents"</span>;
 <span class="kw">import</span> { canonicalize, encodePolicy } <span class="kw">from</span> <span class="str">"./canonicalize"</span>;
 
 <span class="kw">const</span> REQUIRED_FIELDS = [
@@ -414,7 +410,7 @@ failure:
   <span class="kw">const</span> policy = canonicalize(PolicySchema.parse(proposal.object));
   assertFields(policy, REQUIRED_FIELDS);
   assertNoContradictions(policy);
-  assertKnownAssets(policy.onchain.assets);
+  assertKnownAssets(policy.arc.assets);
 
   <span class="cm">// Search sequences, not only individual calls. Five legal $20 payments</span>
   <span class="cm">// may still violate a $50 aggregate merchant limit.</span>
@@ -444,8 +440,9 @@ failure:
   verifyOwnerSignature(result.policyRoot, signature);
 
   <span class="kw">const</span> account = <span class="kw">await</span> deployPolicyAccount({
-    chainId: 46630,
-    entryPoint: ENTRY_POINT_V07,
+    chainId: config.arcChainId,
+    rpcUrl: config.arcRpcUrl,
+    nativeGasAsset: <span class="str">"USDC"</span>,
     policyRoot: result.policyRoot,
     ownerSignature: signature
   });
@@ -453,7 +450,7 @@ failure:
   <span class="kw">return</span> {
     account,
     sessionKey: <span class="kw">await</span> issueSessionKey(account, scopeSession(result.policy)),
-    cardControls: mapToCardControls(result.policy)
+    circlePolicy: mapToCircleControls(result.policy)
   };
 }</code></pre>
           </div>
@@ -461,7 +458,7 @@ failure:
 
         <article class="repo-panel" data-panel-name="runtime" hidden>
           <div class="code-wrap">
-            <div class="code-head">Settra / src / runtime / executePlan.ts</div>
+            <div class="code-head">Senso / src / runtime / executePlan.ts</div>
             <pre><code><span class="kw">export async function</span> <span class="fn">executePlan</span>(plan: EconomicPlan, ctx: RuntimeContext) {
   <span class="kw">const</span> saga = <span class="kw">await</span> ctx.ledger.begin({
     planHash: hashPlan(plan),
@@ -483,27 +480,28 @@ failure:
         <span class="kw">await</span> ctx.approvals.requireOwner(action, verdict);
       }
 
-      <span class="kw">if</span> (action.rail === <span class="str">"onchain"</span>) {
+      <span class="kw">if</span> (action.rail === <span class="str">"arc"</span>) {
         <span class="kw">const</span> simulation = <span class="kw">await</span> ctx.chain.simulate(action);
         assertPostState(simulation, verdict.expectedPostState);
 
         <span class="kw">const</span> proof = buildPolicyProof(action, preState, ctx.policy);
         <span class="kw">const</span> tx = <span class="kw">await</span> ctx.account.executeUserOperation(action, proof);
-        <span class="kw">await</span> saga.commit(action, { rail: <span class="str">"onchain"</span>, txHash: tx.hash });
+        <span class="kw">await</span> saga.commit(action, { rail: <span class="str">"arc"</span>, txHash: tx.hash });
       } <span class="kw">else</span> {
-        <span class="cm">// The Banking MCP does not shop. The agent reaches checkout first;</span>
-        <span class="cm">// card credentials are fetched only after policy and approval checks.</span>
-        assertCheckoutMatches(action.checkout, verdict);
-        <span class="kw">const</span> card = <span class="kw">await</span> ctx.banking.getAuthorizedVirtualCard();
-        <span class="kw">const</span> receipt = <span class="kw">await</span> ctx.checkout.pay(action.checkout, card);
-        <span class="kw">await</span> saga.commit(action, { rail: <span class="str">"card"</span>, receiptHash: hash(receipt) });
+        <span class="cm">// Cross-chain USDC may route through CCTP or Gateway, but the same</span>
+        <span class="cm">// signed policy must authorize the destination, amount and expiry.</span>
+        <span class="kw">const</span> route = <span class="kw">await</span> ctx.circle.quoteUSDCTransfer(action);
+        assertRouteMatches(route, verdict);
+
+        <span class="kw">const</span> transfer = <span class="kw">await</span> ctx.circle.executeUSDCTransfer(route);
+        <span class="kw">await</span> saga.commit(action, { rail: <span class="str">"circle"</span>, txHash: transfer.txHash });
       }
     }
 
     <span class="kw">const</span> root = <span class="kw">await</span> ctx.ledger.commitMerkleRoot(saga.entries());
     <span class="kw">return await</span> saga.complete({ ledgerRoot: root });
   } <span class="kw">catch</span> (error) {
-    <span class="cm">// Card and chain writes are not atomic. Compensate completed steps</span>
+    <span class="cm">// Arc and cross-chain writes are not atomic. Compensate completed steps</span>
     <span class="cm">// in reverse order, then freeze if the books still disagree.</span>
     <span class="kw">const</span> result = <span class="kw">await</span> saga.compensateReverse();
     <span class="kw">if</span> (!result.reconciled) <span class="kw">await</span> ctx.account.freeze(<span class="str">"ledger mismatch"</span>);
@@ -515,14 +513,14 @@ failure:
 
         <article class="repo-panel" data-panel-name="contract" hidden>
           <div class="code-wrap">
-            <div class="code-head">Settra / contracts / SettraPolicy.sol</div>
+            <div class="code-head">Senso / contracts / SensoPolicy.sol</div>
             <pre><code><span class="cm">// SPDX-License-Identifier: MIT</span>
 <span class="kw">pragma solidity</span> ^0.8.24;
 
 <span class="kw">import</span> {MerkleProof} <span class="kw">from</span> <span class="str">"openzeppelin/utils/cryptography/MerkleProof.sol"</span>;
 <span class="kw">import</span> {ReentrancyGuard} <span class="kw">from</span> <span class="str">"openzeppelin/utils/ReentrancyGuard.sol"</span>;
 
-<span class="kw">contract</span> <span class="fn">SettraPolicy</span> <span class="kw">is</span> ReentrancyGuard {
+<span class="kw">contract</span> <span class="fn">SensoPolicy</span> <span class="kw">is</span> ReentrancyGuard {
   <span class="kw">struct</span> Action {
     <span class="kw">address</span> target;
     <span class="kw">address</span> asset;
@@ -608,8 +606,8 @@ failure:
 
   <script>
   (function(){
-    // flowing rainbow ENTER (same palette as the reference)
-    var colours = ["#5c2f16","#6b3518","#7a3f1d","#8b4513","#96501a","#a0522d","#8b3e1f","#704214"];
+    // flowing rainbow text
+    var colours = ["#ff4d6d","#ff8c42","#ffd93d","#2ee6a6","#4dd7ff","#7b61ff","#d946ef"];
     // auto-split any .rainbowline into per-letter rainbow spans
     var lines = document.querySelectorAll('.rainbowline');
     for (var q=0; q<lines.length; q++){
@@ -628,7 +626,7 @@ failure:
     }, 100);
 
     var repoButton = document.getElementById('github-repo-button');
-    var repoModal = document.getElementById('Settra-repository');
+    var repoModal = document.getElementById('Senso-repository');
     var repoClose = repoModal.querySelector('.repo-close');
     var repoTabs = repoModal.querySelectorAll('.repo-tab');
     var repoPanels = repoModal.querySelectorAll('.repo-panel');
@@ -655,7 +653,7 @@ failure:
       }
     }
 
-    repoButton.addEventListener('click', openRepository);
+    if (repoButton) repoButton.addEventListener('click', openRepository);
     repoClose.addEventListener('click', closeRepository);
     repoModal.addEventListener('click', function(event){
       if (event.target === repoModal) closeRepository();

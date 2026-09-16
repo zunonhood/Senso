@@ -1,4 +1,4 @@
-name: Deploy Settra to GitHub Pages
+name: Deploy Senso to GitHub Pages
 
 on:
   push:
